@@ -11,7 +11,7 @@ const register = async (req, res) => {
         phone: req.body.phone,
         password: req.body.password
     }
-    var sql1 = ` select * from register where phone = '${obj.phone}'`
+    var sql1 = ` select * from register where email = '${obj.email}'`
     conn.query(sql1, async (err, result) => {
         if (err) {
             return res.send({ ERRoR: errr })
