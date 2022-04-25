@@ -53,7 +53,7 @@ const login = async (req, res) => {
             const match = await bcrypt.compare(obj.password, result[0].password);
             if (match === true) {
                         var token = jwt.sign({ data: result}, 'shhhhh');
-                        return res.send({msg:"user logged in successfully", token:{token}});
+                        return res.send({msg:"user logged in successfully", token:{token}, user:result[0].name});
 
             }}
         })
