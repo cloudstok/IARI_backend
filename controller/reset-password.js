@@ -1,76 +1,16 @@
-const { conn } = require('../config/db')
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
+const { conn } = require('../config/db');
 const otpGenerator = require('otp-generator');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 
-const test = (req, res) => {
-    res.send("hello")
-}
-const register = async (req, res) => {
-    const obj = {
-        name: req.body.name,
-        email: req.body.email,
-        mobile: req.body.mobile,
-        password: req.body.password
-    }
-    var sql1 = ` select * from register where email = '${obj.email}'`
-    conn.query(sql1, async (err, result) => {
-        if (err) {
-            return res.send({ ERROR: err })
-        }
-        else if (result.length > 0) {
-            return res.send({ msg: 'user already exist' })
-        }
-        else {
-            const hash = await bcrypt.hash(obj.password, process.env.SALT_ROUNDS)
-            var sql = `INSERT INTO register (name, email, mobile , password, registered_on) VALUES ('${obj.name}' , '${obj.email}' , '${obj.mobile}','${hash}', '${new Date()}')`
-            conn.query(sql, async (err, result) => {
-                if (err) {
-                    return res.send({ ERROR: err })
-                }
-                else {
-                    return res.send("user registered successfully")
-                }
-            })
-        }
-    })
 
-
-}
-
-const login = async (req, res) => {
-    const obj = {
-        email: req.body.email,
-        password: req.body.password
-    }
-    let sql1 = ` select * from register where email = '${obj.email}'`
-    conn.query(sql1, async (err, result) => {
-        if (err) {
-            return res.send({ ERROR: err })
-        }
-        else if (result.length === 0) {
-            return res.send({ msg: 'You are not registered, Please register first!' })
-        }
-        else {
-            const match = await bcrypt.compare(obj.password, result[0].password);
-            if (match === true) {
-                var token = jwt.sign({ data: result }, process.env.SECRET_PASS);
-                return res.send({ msg: "user logged in successfully", token: { token }, user: result[0].name });
-
-            }
-        }
-    })
-}
-
-const resetPassword = async (req, res, next ) => {
+const resetPassword = async (req, res ) => {
     try {
-        const obj = {
+        let obj = {
             email: req.body.email,
         }
-        const otp = await otpGenerator.generate(6, {
+        let otp = await otpGenerator.generate(6, {
             lowerCaseAlphabets: false,
             upperCaseAlphabets: false,
             specialChars: false
@@ -146,11 +86,39 @@ const resetPassword = async (req, res, next ) => {
     }
 }
 
+    const updatePassword = (req, res)=> {
+        try{
+            let obj = {
+                otp: req.body.otp,
+                newPass: req.body.password
+            }
+           
+                let sql = `SELECT * FROM register WHERE otp = '${obj.otp}'`;
+                    conn.query(sql, (err, match)=>{
+                        if(err){
+                            return res.status(404).send({status:0, msg: "Internal Server Error"})
+                        }
+                        if(match === true){
+                            let sql1 = `UPDATE register SET password = '${obj.newPass}', otp = null WHERE otp = '${obj.otp}'`;
+                            conn.query(sql1, (err, row)=>{
+                                if(err){
+                                    return res.status(400).send({status:0, msg: "Internal Server Error"})
+                                }else{
+                                    return res.status(200).send({status:1, msg: "Password Changed Successfully"})
+                                }
+                            })
+                        }else{
+                            return res.status(400).send({status:0, msg: "Invalid OTP"})
+                        }
+                    })
+        }
+        catch(error){
+            return res.status(500).send({status:0, msg: "Something went wrong"})
+        }
+    }
 
 
 module.exports = {
-    test,
-    register,
-    login,
-    resetPassword
+    resetPassword,
+    updatePassword
 }
