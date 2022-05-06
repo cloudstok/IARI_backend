@@ -35,7 +35,6 @@ const resetPassword = async (req, res ) => {
                 return res.status(404).send({ status: 0, msg: err })
             }
             if (row.length > 0) {
-                if (row[0].otp === null) {
                     transporter.sendMail(mailOptions, (err, result) => {
                         if (err) {
                             return res.status(404).send({ status: 0, msg: err })
@@ -54,26 +53,6 @@ const resetPassword = async (req, res ) => {
 
                         }
                     })
-                }
-                else {
-                    transporter.sendMail(mailOptions, (err, result) => {
-                        if (err) {
-                            return res.status(404).send({ status: 0, msg: err })
-                        }
-                        else {
-                            let sql = `UPDATE register SET otp = '${otp}' where email= '${obj.email}'`
-                            conn.query(sql, (err, rows) => {
-                                if (err) {
-                                    return res.status(500).send({ status: 0, msg: "Something went wrong" })
-                                }
-                                else {
-                                    return res.status(200).send({ status: 1, message: "Email sent successfully" })
-                                }
-                            })
-
-                        }
-                    })
-                }
             }
             else {
                 return res.status(404).send({ status: 0, msg: "User not found" })
