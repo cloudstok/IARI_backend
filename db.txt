@@ -1,0 +1,10 @@
+CREATE TABLE `farmers`.`register` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(45) NULL,
+  `email` VARCHAR(255) NULL,
+  `mobile` BIGINT(45) NULL,
+  `password` VARCHAR(255) NOT NULL,
+  `otp` VARCHAR(45) NULL,
+  `registered_on` VARCHAR(255) NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `mobile_UNIQUE` (`mobile` ASC) VISIBLE);

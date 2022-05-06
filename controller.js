@@ -64,7 +64,7 @@ const login = async (req, res) => {
 
 const resetPassword = async (req, res, next ) => {
     try {
-        const object = {
+        const obj = {
             email: req.body.email,
         }
         const otp = await otpGenerator.generate(6, {
