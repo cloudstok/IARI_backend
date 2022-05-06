@@ -23,7 +23,7 @@ const resetPassword = async (req, res ) => {
             }
         });
         let mailOptions = {
-            from: 'gprashantgupta30@gmail.com',
+            from: 'no-reply@iari.com',
             to: obj.email,
             subject: "Reset Password OTP",
             text: `OTP to reset your password is ${otp}`
