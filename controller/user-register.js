@@ -19,7 +19,8 @@ const register = async (req, res) => {
             return res.send({ msg: 'user already exist' })
         }
         else {
-            const hash = await bcrypt.hash(obj.password, process.env.SALT_ROUNDS)
+            const salt = parseInt(process.env.ROUNDS)
+            const hash = await bcrypt.hash(obj.password, salt)
             var sql = `INSERT INTO register (name, email, mobile , password, registered_on) VALUES ('${obj.name}' , '${obj.email}' , '${obj.mobile}','${hash}', '${new Date()}')`
             conn.query(sql, async (err, result) => {
                 if (err) {

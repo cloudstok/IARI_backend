@@ -1,6 +1,7 @@
 const { conn } = require('../config/db');
 const otpGenerator = require('otp-generator');
 const nodemailer = require('nodemailer');
+const bcrypt = require('bcrypt')
 require('dotenv').config();
 
 
@@ -10,6 +11,7 @@ const resetPassword = async (req, res ) => {
         let obj = {
             email: req.body.email,
         }
+
         let otp = await otpGenerator.generate(6, {
             lowerCaseAlphabets: false,
             upperCaseAlphabets: false,
@@ -18,9 +20,10 @@ const resetPassword = async (req, res ) => {
         let transporter = await nodemailer.createTransport( {
             service: process.env.SERVICE,
             auth: {
-                user: process.env.USERNAME,
+                user: process.env.USER,
                 pass: process.env.PASS
-            }
+
+            },
         });
         let mailOptions = {
             from: 'no-reply@iari.com',
@@ -65,20 +68,20 @@ const resetPassword = async (req, res ) => {
     }
 }
 
-    const updatePassword = (req, res)=> {
+    const updatePassword = async (req, res)=> {
         try{
             let obj = {
                 otp: req.body.otp,
                 newPass: req.body.password
             }
-           
-                let sql = `SELECT * FROM register WHERE otp = '${obj.otp}'`;
+            const newPass = await bcrypt.hash(obj.newPass, 12)
+             let sql = `SELECT * FROM register WHERE otp = '${obj.otp}'`;
                     conn.query(sql, (err, match)=>{
                         if(err){
                             return res.status(404).send({status:0, msg: "Internal Server Error"})
                         }
-                        if(match === true){
-                            let sql1 = `UPDATE register SET password = '${obj.newPass}', otp = null WHERE otp = '${obj.otp}'`;
+                        if(match[0].otp === obj.otp){
+                            let sql1 = `UPDATE register SET password = '${newPass}', otp = null WHERE otp = '${obj.otp}'`;
                             conn.query(sql1, (err, row)=>{
                                 if(err){
                                     return res.status(400).send({status:0, msg: "Internal Server Error"})
